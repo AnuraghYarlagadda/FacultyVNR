@@ -9,7 +9,7 @@ Future<void> openFile(
   final result = await OpenFile.open(filePath);
   if (result.type == ResultType.fileNotFound) {
     Fluttertoast.showToast(
-        msg: "File Not Found! \nRetry Downloading..",
+        msg: "File Not Found! \nRetry Generating report..",
         toastLength: Toast.LENGTH_SHORT,
         backgroundColor: Colors.red,
         textColor: Colors.white);

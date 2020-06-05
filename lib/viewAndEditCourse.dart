@@ -28,13 +28,14 @@ class ViewAndEditCourseState extends State<ViewAndEditCourse> {
   void initState() {
     super.initState();
     this.studentDetails = [];
-    grantStoragePermissionAndCreateDir(context);
     this.students = new LinkedHashSet<StudentDetails>();
     this.phone = [];
     print(widget.args);
     if (widget.args != null) {
       if (widget.args["courseName"] != null) {
         this.courseName = widget.args["courseName"];
+        grantStoragePermissionAndCreateDir(context,
+            "/storage/emulated/0" + "/Attendance" + "/" + this.courseName);
         getData(this.courseName);
       }
     }

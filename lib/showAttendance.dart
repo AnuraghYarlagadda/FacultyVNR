@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'package:faculty/DataModels/courseAttendance.dart';
 import 'package:faculty/DataModels/studentDetails.dart';
 import 'package:faculty/Utils/StoragePermissions.dart';
+import 'package:faculty/Utils/openFileFromLocalStorage.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html_to_pdf/flutter_html_to_pdf.dart';
@@ -32,7 +33,6 @@ class ShowAttendanceState extends State<ShowAttendance> {
   void initState() {
     super.initState();
     print(widget.args);
-    grantStoragePermissionAndCreateDir(context);
     this.status = Status.data.index;
     this.timeStamp = "";
     this.display = new List();
@@ -49,7 +49,6 @@ class ShowAttendanceState extends State<ShowAttendance> {
   getData() async {
     final ref = fb.reference();
     await ref.child("CourseAttendance").once().then((onValue) {
-      print(onValue.value);
       if (onValue.value == null) {
         setState(() {
           this.status = Status.nodata.index;
@@ -218,15 +217,38 @@ class ShowAttendanceState extends State<ShowAttendance> {
                                     );
                                   })),
                       Padding(
-                        padding: EdgeInsets.all(10),
-                        child: RaisedButton(
-                            child: Text("Generate Report"),
-                            onPressed: () async {
-                              await generateExampleDocument();
-                            },
-                            color: Colors.teal,
-                            textColor: Colors.white),
-                      )
+                          padding: EdgeInsets.all(10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              RaisedButton(
+                                  child: Text("Generate Report"),
+                                  onPressed: () async {
+                                    await generateExampleDocument();
+                                  },
+                                  color: Colors.teal,
+                                  textColor: Colors.white),
+                              RaisedButton(
+                                  child: Text("Open Report"),
+                                  onPressed: () {
+                                    openFile(
+                                        context,
+                                        "/storage/emulated/0" +
+                                            "/Attendance/" +
+                                            this.courseName +
+                                            "/" +
+                                            this.courseName +
+                                            "_" +
+                                            this.courseAttendance.year +
+                                            "_" +
+                                            this.what +
+                                            ".pdf",
+                                        "pdf");
+                                  },
+                                  color: Colors.deepOrange,
+                                  textColor: Colors.white),
+                            ],
+                          ))
                     ],
                   ),
                 ),
@@ -297,13 +319,15 @@ class ShowAttendanceState extends State<ShowAttendance> {
     </html>
     """;
 
-    var targetPath = "/storage/emulated/0" + "/Attendance";
+    var targetPath =
+        "/storage/emulated/0" + "/Attendance" + "/" + this.courseName;
     var targetFileName =
         this.courseName + "_" + this.courseAttendance.year + "_" + this.what;
 
     var generatedPdfFile = await FlutterHtmlToPdf.convertFromHtmlContent(
         htmlContent, targetPath, targetFileName);
     generatedPdfFilePath = generatedPdfFile.path;
+    print(generatedPdfFilePath);
     if (generatedPdfFilePath.isNotEmpty) {
       Fluttertoast.showToast(
           msg: courseAttendance.courseName.toLowerCase() +

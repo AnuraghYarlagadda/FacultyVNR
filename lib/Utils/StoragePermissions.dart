@@ -5,7 +5,7 @@ import 'package:faculty/Utils/Settings.dart';
 import './Storagedirectory.dart';
 import 'package:flutter/material.dart';
 
-grantStoragePermissionAndCreateDir(BuildContext context) {
+grantStoragePermissionAndCreateDir(BuildContext context, String dir) {
   Permission.storage.request().then((onValue) {
     if (onValue == PermissionStatus.permanentlyDenied) {
       Fluttertoast.showToast(
@@ -15,9 +15,8 @@ grantStoragePermissionAndCreateDir(BuildContext context) {
           textColor: Colors.white);
       openAppSettingsVNR();
     } else if (onValue == PermissionStatus.denied)
-      grantStoragePermissionAndCreateDir(context);
+      grantStoragePermissionAndCreateDir(context, dir);
     else if (onValue == PermissionStatus.granted)
-      createandgetDirectory(context);
+      createandgetDirectory(context, dir);
   });
 }
-

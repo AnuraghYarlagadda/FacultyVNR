@@ -45,7 +45,8 @@ class HomeState extends State<Home> {
     this.courses = new LinkedHashMap<dynamic, dynamic>();
     this.status = Status.nodata.index;
     checkUserStatus();
-    grantStoragePermissionAndCreateDir(context);
+    grantStoragePermissionAndCreateDir(
+        context, "/storage/emulated/0" + "/Attendance");
   }
 
   checkUserStatus() async {
@@ -150,17 +151,17 @@ class HomeState extends State<Home> {
       body: this._currentIndex == 0
           ? this.userLoggedIn == null
               ? Center(
-                  child: SpinKitFadingCube(color: Colors.cyan),
+                  child: SpinKitFadingCube(color: Colors.pink),
                 )
               : this.userLoggedIn == false
                   ? Login()
                   : this.user == null
                       ? Center(
-                          child: SpinKitFadingCube(color: Colors.cyan),
+                          child: SpinKitFadingCube(color: Colors.pink),
                         )
                       : this.status == Status.nodata.index
                           ? Center(
-                              child: SpinKitFadingCube(color: Colors.cyan),
+                              child: SpinKitFadingCube(color: Colors.pink),
                             )
                           : this.courses.length == 0
                               ? Center(
