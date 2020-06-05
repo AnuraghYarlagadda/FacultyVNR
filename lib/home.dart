@@ -106,7 +106,9 @@ class HomeState extends State<Home> {
       print(this.coordinatorsDetails.email);
       print(this.courses.length);
     } else {
-      this.status = Status.data.index;
+      setState(() {
+        this.status = Status.data.index;
+      });
     }
   }
 
