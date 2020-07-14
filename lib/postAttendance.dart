@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'package:faculty/DataModels/attendanceBackup.dart';
 import 'package:faculty/DataModels/courseAttendance.dart';
 import 'package:faculty/DataModels/studentAttendanceDetails.dart';
 import 'package:faculty/DataModels/studentDetails.dart';
@@ -154,6 +155,85 @@ class PostAttendanceState extends State<PostAttendance> {
     } on PlatformException catch (e) {
       print("Oops! " + e.toString());
     }
+  }
+
+  postBackupAttendance(CourseAttendance courseAttendance) async {
+    var dateinput = new DateTime.now();
+    var dateFormatter = new DateFormat('dd-MM-yyyy');
+    var timeFormatter = new DateFormat('HH:mm:ss');
+    // var hourFormatter = new DateFormat('H');
+    // var minFormatter = new DateFormat('m');
+    // int hour = int.tryParse(hourFormatter.format(dateinput)) ?? 0;
+    // int min = int.tryParse(minFormatter.format(dateinput)) ?? 0;
+    String date = dateFormatter.format(dateinput);
+    //String date = "05-07-2020";
+    String time = timeFormatter.format(dateinput);
+    PresentAbsent presentAbsent = new PresentAbsent(
+        courseAttendance.presentees, courseAttendance.absentees);
+    LinkedHashMap timemap = new LinkedHashMap<dynamic, dynamic>();
+    timemap[time] = presentAbsent.toJson();
+    TimeAttendance timeAttendance = new TimeAttendance(timemap);
+    LinkedHashMap datemap = new LinkedHashMap<dynamic, dynamic>();
+    datemap[date] = timeAttendance.toJson();
+
+    final ref = fb.reference();
+    try {
+      await ref.child("Backup").once().then((onValue) async {
+        if (onValue.value == null) {
+          BackupAttendance backupAttendance = new BackupAttendance(
+              courseAttendance.courseName, courseAttendance.year, datemap);
+          try {
+            await ref
+                .child("Backup")
+                .child(backupAttendance.courseName)
+                .set(backupAttendance.toJson());
+          } on PlatformException catch (e) {}
+        } else {
+          if (onValue.value.keys.contains(courseAttendance.courseName)) {
+            try {
+              await ref
+                  .child("Backup")
+                  .child(courseAttendance.courseName)
+                  .child("dates")
+                  .once()
+                  .then((onValue) async {
+                LinkedHashMap datemapDataBase = onValue.value;
+                if (datemapDataBase.containsKey(date)) {
+                  LinkedHashMap timemapDatabase =
+                      datemapDataBase[date]["times"];
+                  timemapDatabase[time] = presentAbsent.toJson();
+
+                  datemapDataBase[date]["times"] = timemapDatabase;
+
+                  await ref
+                      .child("Backup")
+                      .child(courseAttendance.courseName)
+                      .child("dates")
+                      .set(datemapDataBase);
+                } else {
+                  datemapDataBase[date] = timeAttendance.toJson();
+
+                  await ref
+                      .child("Backup")
+                      .child(courseAttendance.courseName)
+                      .child("dates")
+                      .set(datemapDataBase);
+                }
+              });
+            } on PlatformException catch (e) {}
+          } else {
+            BackupAttendance backupAttendance = new BackupAttendance(
+                courseAttendance.courseName, courseAttendance.year, datemap);
+            try {
+              await ref
+                  .child("Backup")
+                  .child(backupAttendance.courseName)
+                  .set(backupAttendance.toJson());
+            } on PlatformException catch (e) {}
+          }
+        }
+      });
+    } on PlatformException catch (e) {}
   }
 
   @override
@@ -355,6 +435,8 @@ class PostAttendanceState extends State<PostAttendance> {
                                                 this.absentees;
                                           });
                                           postFirebaseAttendance(
+                                              this.courseAttendance);
+                                          postBackupAttendance(
                                               this.courseAttendance);
                                         },
                                         color: Colors.teal,
